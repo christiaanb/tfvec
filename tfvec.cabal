@@ -1,0 +1,20 @@
+name:                tfvec
+version:             0.1.1
+synopsis:            Fixed sized vectors.
+description:         Vectors with numerically parameterized size, using 
+                     type-level numerals from 'tfp' library
+category:            Data
+license:             BSD3
+license-file:        LICENSE
+author:              Christiaan Baaij
+maintainer:          christiaan.baaij@gmail.com
+build-type:          Simple
+cabal-version:       >=1.2  
+
+Library
+  extensions:        StandaloneDeriving, ExistentialQuantification, 
+                     ScopedTypeVariables, TemplateHaskell, TypeOperators, 
+                     FlexibleInstances, TypeFamilies, UndecidableInstances,
+                     DeriveDataTypeable, RankNTypes
+  build-depends:     base >= 3.0, template-haskell >= 2.0, tfp >= 0.3.1
+  exposed-modules:   Data.Param.TFVec
