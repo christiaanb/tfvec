@@ -35,7 +35,7 @@ module Data.Param.TFVec
   , take
   , drop
   , select
-  , group
+--  , group
   , (<+)
   , (++)
   , map
@@ -82,7 +82,6 @@ deriving instance (NaturalT s, Typeable s, Data s, Typeable a, Data a) => Data (
 empty :: TFVec D0 a
 empty = TFVec []
 
-{-# NOINLINE (+>) #-}
 (+>) :: a -> TFVec s a -> TFVec (Succ s) a
 x +> (TFVec xs) = TFVec (x:xs)
 
@@ -175,12 +174,12 @@ select f s n = liftV (select' f' s' n')
           | otherwise = []
         selectFirst0 _ 0 [] = []
 
-group :: PositiveT n => n -> TFVec s a -> TFVec (Div s n) (TFVec n a)
-group n = liftV (group' (fromIntegerT n))
-  where group' :: Int -> [a] -> [TFVec s a]
-        group' n xs = case splitAtM n xs of
-                        Nothing -> []
-                        Just (ls, rs) -> TFVec ls : group' n rs
+-- group :: PositiveT n => n -> TFVec s a -> TFVec (Div s n) (TFVec n a)
+-- group n = liftV (group' (fromIntegerT n))
+--   where group' :: Int -> [a] -> [TFVec s a]
+--         group' n xs = case splitAtM n xs of
+--                         Nothing -> []
+--                         Just (ls, rs) -> TFVec ls : group' n rs
 
 (<+) :: TFVec s a -> a -> TFVec (Succ s) a
 (<+) (TFVec xs) x = TFVec (xs P.++ [x])
@@ -220,9 +219,8 @@ shiftr xs x = tail xs <+ x
 rotl :: (PositiveT s, s ~ Succ (Pred s)) => TFVec s a -> TFVec s a
 rotl xs = last xs +> init xs
 
-class Rotr a where rotr :: a -> a
-instance Rotr (TFVec D0 a) where rotr xs = xs
-instance (PositiveT s, s ~ Succ (Pred s)) => Rotr (TFVec s a) where rotr xs = tail xs <+ head xs
+rotr :: (PositiveT s, s ~ Succ (Pred s)) => TFVec s a -> TFVec s a
+rotr xs = tail xs <+ head xs
 
 concat :: TFVec s1 (TFVec s2 a) -> TFVec (s1 :*: s2) a
 concat = liftV (P.foldr ((P.++).unTFVec) [])
