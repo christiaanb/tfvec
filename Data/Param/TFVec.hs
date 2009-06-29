@@ -53,6 +53,7 @@ module Data.Param.TFVec
   , iterate
   , generate
   , copy
+  , copyn
   ) where
     
 
@@ -234,8 +235,11 @@ iterate s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.iterate f x)
 generate :: NaturalT s => s -> (a -> a) -> a -> TFVec s a
 generate s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.tail $ P.iterate f x)
 
-copy :: NaturalT s => s -> a -> TFVec s a
-copy s x = iterate s id x
+copy :: NaturalT s => a -> TFVec s a
+copy x = copyn (undefined :: s) x
+
+copyn :: NaturalT s => s -> a -> TFVec s a
+copyn s x = iterate s id x
 
 -- =============
 -- = Instances =
