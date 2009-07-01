@@ -50,7 +50,9 @@ module Data.Param.TFVec
   , concat
   , reverse
   , iterate
+  , iteraten
   , generate
+  , generaten
   , copy
   , copyn
   ) where
@@ -228,17 +230,23 @@ concat = liftV (P.foldr ((P.++).unTFVec) [])
 reverse :: TFVec s a -> TFVec s a
 reverse = liftV P.reverse
 
-iterate :: NaturalT s => s -> (a -> a) -> a -> TFVec s a
-iterate s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.iterate f x)
+iterate :: NaturalT s => (a -> a) -> a -> TFVec s a
+iterate = iteraten (undefined :: s)
 
-generate :: NaturalT s => s -> (a -> a) -> a -> TFVec s a
-generate s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.tail $ P.iterate f x)
+iteraten :: NaturalT s => s -> (a -> a) -> a -> TFVec s a
+iteraten s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.iterate f x)
+
+generate :: NaturalT s => (a -> a) -> a -> TFVec s a
+generate = generaten (undefined :: s)
+
+generaten :: NaturalT s => s -> (a -> a) -> a -> TFVec s a
+generaten s f x = let s' = fromIntegerT s in TFVec (P.take s' $ P.tail $ P.iterate f x)
 
 copy :: NaturalT s => a -> TFVec s a
 copy x = copyn (undefined :: s) x
 
 copyn :: NaturalT s => s -> a -> TFVec s a
-copyn s x = iterate s id x
+copyn s x = iteraten s id x
 
 -- =============
 -- = Instances =
