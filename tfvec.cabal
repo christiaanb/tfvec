@@ -1,5 +1,5 @@
 name:                tfvec
-version:             0.1.2
+version:             0.1.3
 synopsis:            Fixed sized vectors.
 description:         Vectors with numerically parameterized size, using 
                      type-level numerals from 'tfp' library
