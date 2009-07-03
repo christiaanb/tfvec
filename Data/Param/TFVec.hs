@@ -95,8 +95,11 @@ singleton x = x +> empty
 vectorCPS :: [a] -> (forall s . NaturalT s => TFVec s a -> w) -> w
 vectorCPS xs = unsafeVectorCPS (toInteger (P.length xs)) xs
 
+-- FIXME: Not the most elegant solution... but it works for now in clash
 vectorTH :: Lift a => [a] -> ExpQ
-vectorTH xs = (vectorCPS xs) lift
+-- vectorTH xs = (vectorCPS xs) lift
+vectorTH [] = [| empty |]
+vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
 
 unsafeVector :: NaturalT s => s -> [a] -> TFVec s a
 unsafeVector l xs
