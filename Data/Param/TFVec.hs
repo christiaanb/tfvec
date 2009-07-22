@@ -69,7 +69,7 @@ import Prelude hiding (
   zipWith, zip, unzip, concat, reverse, iterate )
 import qualified Data.Foldable as DF (Foldable, foldr)
 import qualified Data.Traversable as DT (Traversable(traverse))
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Pred)
 import Language.Haskell.TH.Syntax (Lift(..))
 
 newtype (NaturalT s) => TFVec s a = TFVec {unTFVec :: [a]}
