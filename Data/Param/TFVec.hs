@@ -57,12 +57,13 @@ module Data.Param.TFVec
   , copyn
   ) where
     
-
 import Types
+import Types.Data.Num
 import Types.Data.Num.Decimal.Literals.TH
 import Data.RangedWord
 
-import Data.Generics (Data, Typeable)
+import Data.Generics (Data)
+import Data.Typeable
 import qualified Prelude as P
 import Prelude hiding (
   null, length, head, tail, last, init, take, drop, (++), map, foldl, foldr,
@@ -71,6 +72,8 @@ import qualified Data.Foldable as DF (Foldable, foldr)
 import qualified Data.Traversable as DT (Traversable(traverse))
 import Language.Haskell.TH hiding (Pred)
 import Language.Haskell.TH.Syntax (Lift(..))
+
+import Language.Haskell.TH.TypeLib
 
 newtype (NaturalT s) => TFVec s a = TFVec {unTFVec :: [a]}
   deriving (Eq, Typeable)
@@ -96,10 +99,10 @@ vectorCPS :: [a] -> (forall s . NaturalT s => TFVec s a -> w) -> w
 vectorCPS xs = unsafeVectorCPS (toInteger (P.length xs)) xs
 
 -- FIXME: Not the most elegant solution... but it works for now in clash
-vectorTH :: Lift a => [a] -> ExpQ
--- vectorTH xs = (vectorCPS xs) lift
-vectorTH [] = [| empty |]
-vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
+vectorTH :: (Lift a, Typeable a) => [a] -> ExpQ
+vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
+-- vectorTH [] = [| empty |]
+-- vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
 
 unsafeVector :: NaturalT s => s -> [a] -> TFVec s a
 unsafeVector l xs
@@ -282,10 +285,20 @@ instance NaturalT s => Functor (TFVec s) where
 instance NaturalT s => DT.Traversable (TFVec s) where 
   traverse f = (fmap TFVec).(DT.traverse f).unTFVec
 
-instance (Lift a, NaturalT nT) => Lift (TFVec nT a) where
-  lift (TFVec xs) = [|  unsafeTFVecCoerse 
-                        $(decLiteralV (fromIntegerT (undefined :: nT))) 
-                        (TFVec xs) |]
+-- instance (Lift a, NaturalT nT) => Lift (TFVec nT a) where
+--   lift (TFVec xs) = [|  unsafeTFVecCoerse
+--                         $(decLiteralV (fromIntegerT (undefined :: nT)))
+--                         (TFVec xs) |]
+
+instance (Lift a, Typeable a, NaturalT nT) => Lift (TFVec nT a) where
+  lift (TFVec xs) = sigE [| (TFVec xs) |] (decTFVecT (fromIntegerT (undefined :: nT)) xs)
+
+decTFVecT :: Typeable x => Integer -> x -> Q Type
+decTFVecT n a = appT (appT (conT (''TFVec)) (decLiteralT n)) elemT
+  where
+    (con,reps) = splitTyConApp (typeOf a)
+    elemT = typeRep2Type (P.head reps)
+
 
 -- ======================
 -- = Internal Functions =
