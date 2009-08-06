@@ -100,9 +100,9 @@ vectorCPS xs = unsafeVectorCPS (toInteger (P.length xs)) xs
 
 -- FIXME: Not the most elegant solution... but it works for now in clash
 vectorTH :: (Lift a, Typeable a) => [a] -> ExpQ
-vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
--- vectorTH [] = [| empty |]
--- vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
+-- vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
+vectorTH [] = [| empty |]
+vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
 
 unsafeVector :: NaturalT s => s -> [a] -> TFVec s a
 unsafeVector l xs
