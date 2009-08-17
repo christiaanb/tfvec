@@ -102,6 +102,7 @@ vectorCPS xs = unsafeVectorCPS (toInteger (P.length xs)) xs
 vectorTH :: (Lift a, Typeable a) => [a] -> ExpQ
 -- vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
 vectorTH [] = [| empty |]
+vectorTH [x] = [| singleton x |]
 vectorTH (x:xs) = [| x +> $(vectorTH xs) |]
 
 unsafeVector :: NaturalT s => s -> [a] -> TFVec s a
