@@ -16,6 +16,5 @@ Library
                      ScopedTypeVariables, TemplateHaskell, TypeOperators, 
                      FlexibleInstances, TypeFamilies, UndecidableInstances,
                      DeriveDataTypeable, RankNTypes
-  build-depends:     base >= 4.0, template-haskell >= 2.4, tfp > 0.3.2, syb, regex-posix, array
+  build-depends:     base >= 4.0, template-haskell >= 2.0, tfp >= 0.3, syb
   exposed-modules:   Data.Param.TFVec
-  other-modules:     Language.Haskell.TH.TypeLib
