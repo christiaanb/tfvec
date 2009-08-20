@@ -18,7 +18,6 @@ module Data.Param.TFVec
   , empty
   , (+>)
   , singleton
-  , vectorCPS
   , vectorTH
   , unsafeVector
   , readTFVec
@@ -73,8 +72,6 @@ import qualified Data.Traversable as DT (Traversable(traverse))
 import Language.Haskell.TH hiding (Pred)
 import Language.Haskell.TH.Syntax (Lift(..))
 
-import Language.Haskell.TH.TypeLib
-
 newtype (NaturalT s) => TFVec s a = TFVec {unTFVec :: [a]}
   deriving (Eq, Typeable)
 
@@ -95,9 +92,6 @@ infix 5 +>
 singleton :: a -> TFVec D1 a
 singleton x = x +> empty
 
-vectorCPS :: [a] -> (forall s . NaturalT s => TFVec s a -> w) -> w
-vectorCPS xs = unsafeVectorCPS (toInteger (P.length xs)) xs
-
 -- FIXME: Not the most elegant solution... but it works for now in clash
 vectorTH :: (Lift a, Typeable a) => [a] -> ExpQ
 -- vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
@@ -113,15 +107,6 @@ unsafeVector l xs
 
 readTFVec :: (Read a, NaturalT s) => String -> TFVec s a
 readTFVec = read
-
-readTFVecCPS :: Read a => String -> (forall s . NaturalT s => TFVec s a -> w) -> w
-readTFVecCPS str = unsafeVectorCPS (toInteger l) xs
- where fName = show 'readTFVecCPS
-       (xs,l) = case [(xs,l) | (xs,l,rest) <- readTFVecList str,  
-                           ("","") <- lexTFVec rest] of
-                       [(xs,l)] -> (xs,l)
-                       []   -> error (fName P.++ ": no parse")
-                       _    -> error (fName P.++ ": ambiguous parse")
         
 -- =======================
 -- = Observing functions =
@@ -286,20 +271,10 @@ instance NaturalT s => Functor (TFVec s) where
 instance NaturalT s => DT.Traversable (TFVec s) where 
   traverse f = (fmap TFVec).(DT.traverse f).unTFVec
 
--- instance (Lift a, NaturalT nT) => Lift (TFVec nT a) where
---   lift (TFVec xs) = [|  unsafeTFVecCoerse
---                         $(decLiteralV (fromIntegerT (undefined :: nT)))
---                         (TFVec xs) |]
-
-instance (Lift a, Typeable a, NaturalT nT) => Lift (TFVec nT a) where
-  lift (TFVec xs) = sigE [| (TFVec xs) |] (decTFVecT (fromIntegerT (undefined :: nT)) xs)
-
-decTFVecT :: Typeable x => Integer -> x -> Q Type
-decTFVecT n a = appT (appT (conT (''TFVec)) (decLiteralT n)) elemT
-  where
-    (con,reps) = splitTyConApp (typeOf a)
-    elemT = typeRep2Type (P.head reps)
-
+instance (Lift a, NaturalT nT) => Lift (TFVec nT a) where
+  lift (TFVec xs) = [|  unsafeTFVecCoerse
+                        $(decLiteralV (fromIntegerT (undefined :: nT)))
+                        (TFVec xs) |]
 
 -- ======================
 -- = Internal Functions =
@@ -320,11 +295,6 @@ splitAtM n xs = splitAtM' n [] xs
 
 unsafeTFVecCoerse :: nT' -> TFVec nT a -> TFVec nT' a
 unsafeTFVecCoerse _ (TFVec v) = (TFVec v)
-
-unsafeVectorCPS :: forall a w . Integer -> [a] ->
-                        (forall s . NaturalT s => TFVec s a -> w) -> w
-unsafeVectorCPS l xs f = reifyNaturalD l 
-                        (\(_ :: lt) -> f ((TFVec xs) :: (TFVec lt a)))
 
 readTFVecList :: Read a => String -> [([a], Int, String)]
 readTFVecList = readParen' False (\r -> [pr | ("<",s) <- lexTFVec r,
