@@ -14,7 +14,6 @@ cabal-version:       >=1.2
 Library
   extensions:        StandaloneDeriving, ExistentialQuantification, 
                      ScopedTypeVariables, TemplateHaskell, TypeOperators, 
-                     FlexibleInstances, TypeFamilies, UndecidableInstances,
-                     DeriveDataTypeable, RankNTypes
+                     TypeFamilies, DeriveDataTypeable
   build-depends:     base >= 4.0, template-haskell >= 2.0, tfp >= 0.3, syb
   exposed-modules:   Data.Param.TFVec
