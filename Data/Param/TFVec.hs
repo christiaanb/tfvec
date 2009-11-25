@@ -54,6 +54,7 @@ module Data.Param.TFVec
   , generaten
   , copy
   , copyn
+  , split
   ) where
     
 import Types
@@ -93,7 +94,7 @@ singleton :: a -> TFVec D1 a
 singleton x = x +> empty
 
 -- FIXME: Not the most elegant solution... but it works for now in clash
-vectorTH :: (Lift a, Typeable a) => [a] -> ExpQ
+vectorTH :: (Lift a) => [a] -> ExpQ
 -- vectorTH xs = sigE [| (TFVec xs) |] (decTFVecT (toInteger (P.length xs)) xs)
 vectorTH [] = [| empty |]
 vectorTH [x] = [| singleton x |]
@@ -239,6 +240,13 @@ copy x = copyn (undefined :: s) x
 
 copyn :: NaturalT s => s -> a -> TFVec s a
 copyn s x = iteraten s id x
+
+split :: ( NaturalT s
+         -- , IsEven s ~ True
+         ) => TFVec s a -> (TFVec (Div2 s) a, TFVec (Div2 s) a)
+split (TFVec xs) = (TFVec (P.take vlen xs), TFVec (P.drop vlen xs))
+  where
+    vlen = round ((fromIntegral (P.length xs)) / 2)
 
 -- =============
 -- = Instances =
